@@ -1,14 +1,14 @@
-# maeda_app 基本設計書
+# maeda_app 基本設計書（全体＋QR機能）
 
 ---
 
 ## 1. システム概要
 
-本アプリは、ユーザー登録・ログイン機能、ポイント・ビンゴ等の画面遷移、管理者（通常・スーパー）機能を持つWebアプリケーションです。Python（Flask）とSQLiteを用いて実装されています。
+本アプリは、ユーザー登録・ログイン機能、ポイント・ビンゴ等の画面遷移、管理者（通常・スーパー）機能、そしてQRコードからのスタンプゲット機能を持つWebアプリケーションです。Python（Flask）とSQLiteを用いて実装されています。
 
 ---
 
-## 2. 画面構成・ルーティング
+## 2. 画面構成・ルーティング（全体）
 
 | ルート         | 画面名           | 概要・機能                                                                 |
 |:--------------|:----------------|:---------------------------------------------------------------------------|
@@ -21,10 +21,16 @@
 | `/point`      | ポイント画面    | ポイント使用画面                                                           |
 | `/admin`      | 管理者画面      | `maeda_app_root`以上の管理者のみアクセス可                                  |
 | `/superadmin` | スーパー管理画面| `super_root`のみアクセス可                                                 |
+| `/street_qr`  | ストリートQR入口| ストリート用QRからのアクセス。未ログイン時は/loginへ                        |
+| `/shop_qr`    | ショップQR入口  | ショップ用QRからのアクセス。未ログイン時は/loginへ                          |
+| `/street_stamp`| ストリートスタンプ画面| ストリートQRからのスタンプゲット画面                                 |
+| `/shop_stamp` | ショップスタンプ画面  | ショップQRからのスタンプゲット画面                                   |
 
 ---
 
-## 3. 画面遷移図
+## 3. 画面遷移図（全体＋QR機能）
+
+### (1) 全体画面遷移図
 
 ```mermaid
 flowchart TD
@@ -42,6 +48,22 @@ flowchart TD
     Admin -- "スーパー管理者画面へ" --> SuperAdmin["スーパー管理者画面（/superadmin）"]
     Admin -- "Homeへ戻る" --> Home
     SuperAdmin -- "Homeへ戻る" --> Home
+```
+
+### (2) QR機能画面遷移図
+
+```mermaid
+flowchart TD
+    QRStreet["ストリートQR読み取り（/street_qr）"] --> CheckLogin1{ログイン済み?}
+    QRShop["ショップQR読み取り（/shop_qr）"] --> CheckLogin2{ログイン済み?}
+    CheckLogin1 -- "未ログイン" --> Login1["ログイン（/login）"]
+    CheckLogin2 -- "未ログイン" --> Login2["ログイン（/login）"]
+    CheckLogin1 -- "ログイン済み" --> StreetStamp["ストリートスタンプゲット（/street_stamp）"]
+    CheckLogin2 -- "ログイン済み" --> ShopStamp["ショップスタンプゲット（/shop_stamp）"]
+    Login1 -- "ログイン成功" --> StreetStamp
+    Login2 -- "ログイン成功" --> ShopStamp
+    StreetStamp -- "Homeへ戻る" --> Home["Home（/home）"]
+    ShopStamp -- "Homeへ戻る" --> Home
 ```
 
 ---
@@ -107,6 +129,10 @@ erDiagram
 - `/admin`は`maeda_app_root`以上、`/superadmin`は`super_root`のみアクセス可
 - アクセス制御はセッションのroleで判定
 
+### QR機能
+- `/street_qr`・`/shop_qr`は未ログイン時にセッションで遷移先を記録し、ログイン後に該当スタンプ画面へ自動遷移
+- ログイン済みなら即スタンプゲット画面へ
+
 ---
 
 ## 8. テンプレート構成
@@ -116,6 +142,8 @@ erDiagram
 - `home.html`：Home画面
 - `bingo.html`：ビンゴ画面
 - `point_get.html`：ポイント画面
+- `street_stamp.html`：ストリートスタンプ画面
+- `shop_stamp.html`：ショップスタンプ画面
 - `admin.html`：管理者画面（未実装）
 - `superadmin.html`：スーパー管理者画面（未実装）
 
@@ -125,7 +153,7 @@ erDiagram
 
 - パスワードはハッシュ化して保存（Werkzeug利用）
 - セッション管理にFlaskの`secret_key`を使用
-- 管理画面はroleによるアクセス制御
+- 管理画面・スタンプゲット画面はroleやログイン状態によるアクセス制御
 
 ---
 
@@ -133,3 +161,4 @@ erDiagram
 
 - roleカラムにより、他アプリ用のroot権限も容易に追加可能
 - 管理者画面の機能追加やユーザー管理機能の拡張も容易
+- QR種別追加やスタンプ種別追加も容易
