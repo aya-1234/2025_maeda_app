@@ -1,25 +1,8 @@
 <h1>新規登録</h1>
 <form method="post">
   <label>メールアドレス:</label>
-  <input type="email" name="email" required value="{{ email }}"><br><br>
-  <label>性別:</label>
-  <select name="gender" required>
-    <option value="">選択してください</option>
-    <option value="male">男性</option>
-    <option value="female">女性</option>
-    <option value="other">その他</option>
-  </select><br><br>
-  <label>年代:</label>
-  <select name="age_group" required>
-    <option value="">選択してください</option>
-    <option value="10s">10代</option>
-    <option value="20s">20代</option>
-    <option value="30s">30代</option>
-    <option value="40s">40代</option>
-    <option value="50s">50代</option>
-    <option value="60s">60代</option>
-    <option value="70s">70代以上</option>
-  </select><br><br>
-  <button type="submit">登録</button>
+  <input type="email" name="email" required><br><br>
+  <button type="submit">認証メールを送信</button>
 </form>
+<p>{{ message }}</p>
 <a href="/login">ログイン画面へ</a> 
