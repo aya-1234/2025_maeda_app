@@ -24,10 +24,10 @@ mail = Mail(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
     gender = db.Column(db.String(10))
     age_group = db.Column(db.String(10))
     role = db.Column(db.String(10), default='user')
+    age = db.Column(db.Integer)
 
 # Magic Link用トークン管理モデル
 class MagicLinkToken(db.Model):
@@ -172,18 +172,18 @@ def register():
     email = request.args.get('email', '')
     if request.method == 'POST':
         email = request.form.get('email')
-        password = request.form.get('password')
         gender = request.form.get('gender')
         age_group = request.form.get('age_group')
+        age = request.form.get('age')
         # メール重複チェック
         if User.query.filter_by(email=email).first():
             message = 'このメールアドレスは既に登録されています。'
         else:
             user = User(
                 email=email,
-                password_hash=generate_password_hash(password),
                 gender=gender,
-                age_group=age_group
+                age_group=age_group,
+                age=age
             )
             db.session.add(user)
             db.session.commit()
