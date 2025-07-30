@@ -61,8 +61,10 @@ with app.app_context():
 # send_magic_link, magic_login, MagicLinkToken, serializer, send_magic_link_email などの定義・利用箇所を削除
 
 @app.route('/')
-def index():
-    return redirect(url_for('login'))
+def cm():
+    return render_template('cm.html')
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -99,6 +101,11 @@ def bingo():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('bingo.html')
+
+@app.route('/debug')
+def debug():
+    return f"Session: {dict(session)}"
+
 
 @app.route('/point')
 def point():
@@ -187,23 +194,31 @@ def logout():
 
 @app.route('/admin', methods=['GET'])
 def admin_page():
-    if session.get('role') != 'admin':
+    if session.get('role') not in ['admin', 'super_admin']: 
         return "権限がありません", 403
     users = User.query.all()
     return render_template('admin.html', email=session.get('email', ''), users=users)
 
 @app.route('/admin/update_role', methods=['POST'])
 def update_role():
-    if session.get('role') != 'admin':
+    if session.get('role') != 'super_admin':
         return "権限がありません", 403
+
     user_id = request.form.get('user_id')
     new_role = request.form.get('role')
     user = User.query.get(user_id)
-    if user and new_role in ['user', 'admin']:
-        user.role = new_role
-        db.session.commit()
-        return 'success'
-    return 'error', 400
+
+    if not user or new_role not in ['user', 'admin', 'super_admin']:
+        return 'error', 400
+
+    # 自分自身のロールは変更できないようにする
+    if user.email == session.get('email'):
+        return 'error', 400
+
+    user.role = new_role
+    db.session.commit()
+    return 'success'
+
 
 if __name__ == '__main__':
     app.run(debug=True)

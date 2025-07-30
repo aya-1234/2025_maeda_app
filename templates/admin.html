@@ -1,45 +1,71 @@
-<h1>管理者用画面</h1>
-<p>管理者: {{ email }}</p>
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
 
-<table border="1">
-  <tr>
-    <th>ID</th>
-    <th>メールアドレス</th>
-    <th>権限</th>
-    <th>操作</th>
-  </tr>
-  {% for user in users %}
-  <tr>
-    <td>{{ user.id }}</td>
-    <td>{{ user.email }}</td>
-    <td id="role-{{ user.id }}">{{ user.role }}</td>
-    <td>
-      <button onclick="changeRole({{ user.id }}, 'user')">userに変更</button>
-      <button onclick="changeRole({{ user.id }}, 'admin')">adminに変更</button>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>管理者用画面</h1>
+    <p>管理者: {{ email }}</p>
 
-<a href="/home">ホームへ戻る</a>
-<a href="/logout">ログアウト</a>
+    <table border="1">
+      <tr>
+        <th>ID</th>
+        <th>メールアドレス</th>
+        <th>権限</th>
+        <th>操作</th>
+      </tr>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.email }}</td>
+        <td id="role-{{ user.id }}">{{ user.role }}</td>
+        <td>
+          {% if session['role'] == 'super_admin' %}
+          <button onclick="changeRole({{ user.id }}, 'user')">
+            userに変更
+          </button>
+          <button onclick="changeRole({{ user.id }}, 'admin')">
+            adminに変更
+          </button>
+          <button onclick="changeRole({{ user.id }}, 'super_admin')">
+            super_adminに変更
+          </button>
 
-<script>
-function changeRole(userId, newRole) {
-  fetch('/admin/update_role', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: `user_id=${userId}&role=${newRole}`
-  })
-  .then(response => response.text())
-  .then(result => {
-    if(result === 'success') {
-      document.getElementById('role-' + userId).innerText = newRole;
-    } else {
-      alert('権限変更に失敗しました');
+          {% else %}
+          <i>権限変更不可</i>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <a href="/home">ホームへ戻る</a>
+    <a href="/logout">ログアウト</a>
+  </body>
+  <script>
+    function changeRole(userId, newRole) {
+      fetch('/admin/update_role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `user_id=${userId}&role=${newRole}`,
+      })
+        .then(response => response.text())
+        .then(result => {
+          if (result === 'success') {
+            document.getElementById('role-' + userId).innerText = newRole;
+          } else {
+            alert('権限変更に失敗しました');
+          }
+        });
     }
-  });
-}
-</script> 
+  </script>
+</html>

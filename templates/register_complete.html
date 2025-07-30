@@ -1,29 +1,49 @@
-<h1>本登録</h1>
-<form method="post">
-  <label>メールアドレス:</label>
-  <input type="email" name="email" value="{{ email }}" readonly><br><br>
-  <label>パスワード:</label>
-  <input type="password" name="password" required><br><br>
-  <label>年齢:</label>
-  <label>性別:</label>
-  <select name="gender" required>
-    <option value="">選択してください</option>
-    <option value="male">男性</option>
-    <option value="female">女性</option>
-    <option value="other">その他</option>
-  </select><br><br>
-  <label>年代:</label>
-  <select name="age_group" required>
-    <option value="">選択してください</option>
-    <option value="10s">10代</option>
-    <option value="20s">20代</option>
-    <option value="30s">30代</option>
-    <option value="40s">40代</option>
-    <option value="50s">50代</option>
-    <option value="60s">60代</option>
-    <option value="70s">70代以上</option>
-  </select><br><br>
-  <button type="submit">本登録</button>
-</form>
-<p>{{ message }}</p>
-<a href="/login">ログイン画面へ</a> 
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>本登録</h1>
+    <form method="post">
+      <label>メールアドレス:</label>
+      <input
+        type="email"
+        name="email"
+        value="{{ email }}"
+        readonly
+      /><br /><br />
+      <label>パスワード:</label>
+      <input type="password" name="password" required /><br /><br />
+      <label>年齢:</label>
+      <label>性別:</label>
+      <select name="gender" required>
+        <option value="">選択してください</option>
+        <option value="male">男性</option>
+        <option value="female">女性</option>
+        <option value="other">その他</option></select
+      ><br /><br />
+      <label>年代:</label>
+      <select name="age_group" required>
+        <option value="">選択してください</option>
+        <option value="10s">10代</option>
+        <option value="20s">20代</option>
+        <option value="30s">30代</option>
+        <option value="40s">40代</option>
+        <option value="50s">50代</option>
+        <option value="60s">60代</option>
+        <option value="70s">70代以上</option></select
+      ><br /><br />
+      <button type="submit">本登録</button>
+    </form>
+    <p>{{ message }}</p>
+    <a href="/login">ログイン画面へ</a>
+  </body>
+</html>

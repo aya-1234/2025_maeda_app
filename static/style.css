@@ -1,0 +1,38 @@
+/* 基本レイアウト：スマホ用（縦向き） */
+.nav-button {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 300px;
+  text-align: center;
+}
+
+/* パソコン用レイアウト（横向き・幅が広い画面） */
+@media screen and (min-width: 768px) {
+  .nav-button {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    width: 200px;
+  }
+}
+
+.nav-button button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.2em;
+}
+body {
+  text-align: center;
+  font-family: sans-serif;
+  padding: 50px;
+}
+button {
+  font-size: 1.2em;
+  padding: 10px 20px;
+  cursor: pointer;
+}

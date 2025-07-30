@@ -1,10 +1,27 @@
-<h1>ポイント使用画面</h1>
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
 
-<p>ログイン中ユーザー: {{ email }}</p>
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>ポイント使用画面</h1>
 
-{% if role == 'admin' %}
-<a href="/admin">管理者用画面へ</a><br>
-{% endif %}
-<a href="/bingo">ビンゴ画面へ</a>
-<a href="/home">ポイントゲットへ戻る</a>
-<a href="/logout">ログアウト</a>
+    <p>ログイン中ユーザー: {{ email }}</p>
+
+    <nav>
+      {% if role == 'admin' or role == 'super_admin' %}
+      <a href="/admin">管理者用画面へ</a><br />
+      {% endif %}
+      <a href="/bingo">ビンゴ画面へ</a><br />
+      <a href="/home">ポイントゲットへ戻る</a><br />
+      <a href="/logout">ログアウト</a>
+    </nav>
+  </body>
+</html>

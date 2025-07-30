@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>スタートページ</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <h1>ようこそ！</h1>
+    <p>アプリを始めるには、以下のボタンをクリックしてください。</p>
+    <form action="{{ url_for('login') }}" method="get">
+      <button type="submit">ログイン画面へ</button>
+    </form>
+  </body>
+</html>
