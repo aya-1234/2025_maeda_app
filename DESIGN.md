@@ -84,7 +84,7 @@ flowchart TD
 ---
 
 ## 5. ER 図
-
+```
 erDiagram
 
     USERS {
@@ -128,7 +128,7 @@ erDiagram
     USERS ||--o{ QR_SCANS : scans
     USERS ||--|| POINTS : owns
     USERS ||--|| BINGO_STATES : has
-
+```
 ---
 
 ## 6. 権限設計
