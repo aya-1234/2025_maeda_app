@@ -112,13 +112,34 @@ def debug():
     return f"Session: {dict(session)}"
 
 
-@app.route('/point')
-def point():
+@app.route('/point', methods=['GET', 'POST'])
+def use_points():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    email = session.get('email', '')
+
+    email = session.get('email')
     role = session.get('role', 'user')
-    return render_template('point_use.html', email=email, role=role)
+    message = ''
+
+    if request.method == 'POST':
+        try:
+            use_points = int(request.form.get('use_points'))
+            if use_points <= 0:
+                message = '使用ポイントは1以上を指定してください。'
+            else:
+                # ポイント取得
+                point_record = Point.query.filter_by(user_email=email).first()
+                if not point_record or point_record.total_points < use_points:
+                    message = 'ポイントが不足しています。'
+                else:
+                    # ポイントを減らす
+                    point_record.total_points -= use_points
+                    db.session.commit()
+                    message = f'{use_points}ポイントを使用しました。残りポイント: {point_record.total_points}'
+        except (ValueError, TypeError):
+            message = '正しいポイント数を入力してください。'
+
+    return render_template('point_use.html', email=email, role=role, message=message)
 
 @app.route('/street_qr')
 def street_qr():

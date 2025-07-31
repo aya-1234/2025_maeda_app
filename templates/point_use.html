@@ -3,17 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-
-    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <title>ポイント使用画面</title>
   </head>
   <body>
     <h1>ポイント使用画面</h1>
 
     <p>ログイン中ユーザー: {{ email }}</p>
+
+    <form method="POST" action="{{ url_for('use_points') }}">
+      <label for="use_points">使用ポイント数：</label>
+      <input type="number" id="use_points" name="use_points" min="1" required />
+      <button type="submit">ポイントを使う</button>
+    </form>
+
+    {% if message %}
+    <p style="color: red;">{{ message }}</p>
+    {% endif %}
 
     <nav>
       {% if role == 'admin' or role == 'super_admin' %}
