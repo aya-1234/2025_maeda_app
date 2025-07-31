@@ -84,51 +84,87 @@ flowchart TD
 ---
 
 ## 5. ER 図
-```
-erDiagram
 
-    USERS {
-        int id PK
-        string email
-        string password
-        string gender
-        string age_group
-        boolean is_verified
-    }
 
-    VERIFICATIONS {
-        int id PK
-        int user_id FK
-        string token
-        boolean is_clicked
-        datetime created_at
-    }
+---
 
-    QR_SCANS {
-        int id PK
-        int user_id FK
-        string qr_type
-        datetime scanned_at
-    }
+## 🧱 エンティティ定義（テーブル構造）
 
-    POINTS {
-        int id PK
-        int user_id FK
-        int total_points
-    }
+### 1. Users（ユーザー）
 
-    BINGO_STATES {
-        int id PK
-        int user_id FK
-        json bingo_data
-        datetime last_updated
-    }
+| カラム名 | 型 | 制約 | 説明 |
+|----------|----|------|------|
+| id | int | PK, auto increment | ユーザーID |
+| email | varchar | UNIQUE, NOT NULL | ログイン用メールアドレス |
+| password | varchar | NOT NULL | パスワード（ハッシュ） |
+| gender | varchar |  | 性別 |
+| age_group | varchar |  | 年齢層（例：10代, 20代など） |
+| is_verified | boolean | default: false | メール認証済みかどうか |
 
-    USERS ||--o{ VERIFICATIONS : has
-    USERS ||--o{ QR_SCANS : scans
-    USERS ||--|| POINTS : owns
-    USERS ||--|| BINGO_STATES : has
-```
+---
+
+### 2. Verifications（メール認証トークン）
+
+| カラム名 | 型 | 制約 | 説明 |
+|----------|----|------|------|
+| id | int | PK | トークンID |
+| user_id | int | FK → Users.id | 関連ユーザー |
+| token | varchar | NOT NULL | 認証用トークン（URLに含まれる） |
+| is_clicked | boolean | default: false | クリック済みかどうか |
+| created_at | datetime | NOT NULL | 発行日時 |
+
+---
+
+### 3. QRScans（QRコードスキャン記録）
+
+| カラム名 | 型 | 制約 | 説明 |
+|----------|----|------|------|
+| id | int | PK | スキャン記録ID |
+| user_id | int | FK → Users.id | スキャンしたユーザー |
+| qr_type | varchar | NOT NULL | 'shop' または 'street' |
+| scanned_at | datetime | NOT NULL | スキャン日時 |
+
+---
+
+### 4. Points（累計ポイント）
+
+| カラム名 | 型 | 制約 | 説明 |
+|----------|----|------|------|
+| id | int | PK | レコードID |
+| user_id | int | FK → Users.id | 対象ユーザー |
+| total_points | int | default: 0 | 累計ポイント数 |
+
+---
+
+### 5. BingoStates（ビンゴ状態）
+
+| カラム名 | 型 | 制約 | 説明 |
+|----------|----|------|------|
+| id | int | PK | レコードID |
+| user_id | int | FK → Users.id | 対象ユーザー |
+| bingo_data | json | NOT NULL | ビンゴマスの状態（5×5の配列など） |
+| last_updated | datetime | NOT NULL | 最終更新日時 |
+
+---
+
+## 🔗 リレーションシップ（関係図）
+
+- Users 1 --- * Verifications  
+- Users 1 --- * QRScans  
+- Users 1 --- 1 Points  
+- Users 1 --- 1 BingoStates  
+
+---
+
+## 📌 補足仕様
+
+- QRコードアクセス時、ログインしていなければログイン画面へ遷移。
+- QRスキャン後、対応するビンゴマス（主要 or 非主要）を開く。
+- ポイントはQRの種類に関わらず加算される。
+- ビンゴ状態（`bingo_data`）はバックグラウンドで随時更新。
+- ビンゴ達成時にはユーザーに通知。
+
+
 ---
 
 ## 6. 権限設計
