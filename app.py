@@ -30,6 +30,16 @@ class User(db.Model):
     role = db.Column(db.String(10), default='user')
     age = db.Column(db.Integer)  # ←これを復活
 
+class Point(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_email = db.Column(db.String(120), nullable=False)
+    total_points = db.Column(db.Integer, default=0)
+
+class Bingo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_email = db.Column(db.String(120), nullable=False)
+    data = db.Column(db.Text, default='[]')  # JSON形式で管理
+
 
 # Magic Link用トークン管理モデル
 class MagicLinkToken(db.Model):
@@ -37,6 +47,7 @@ class MagicLinkToken(db.Model):
     email = db.Column(db.String(120), nullable=False)
     token = db.Column(db.String(256), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
 
 serializer = URLSafeTimedSerializer(app.secret_key)
 
@@ -96,12 +107,6 @@ def home():
         return redirect(url_for('login'))
     return render_template('home.html')
 
-@app.route('/bingo')
-def bingo():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    return render_template('bingo.html')
-
 @app.route('/debug')
 def debug():
     return f"Session: {dict(session)}"
@@ -113,7 +118,7 @@ def point():
         return redirect(url_for('login'))
     email = session.get('email', '')
     role = session.get('role', 'user')
-    return render_template('point_get.html', email=email, role=role)
+    return render_template('point_use.html', email=email, role=role)
 
 @app.route('/street_qr')
 def street_qr():
@@ -187,6 +192,83 @@ def register_complete(token):
             return redirect(url_for('login'))
     return render_template('register_complete.html', message=message, email=email)
 
+
+@app.route('/street_stamp')
+def street_stamp():
+    if not session.get('logged_in'):
+        session['after_login_redirect'] = 'street_stamp'
+        return redirect(url_for('login'))
+
+    email = session.get('email')
+
+    # ポイント加算
+    point = Point.query.filter_by(user_email=email).first()
+    if not point:
+        point = Point(user_email=email, total_points=0)
+        db.session.add(point)
+    point.total_points += 10  # ストリートQRは10ポイント
+    db.session.commit()
+
+    # ビンゴマス更新
+    bingo = Bingo.query.filter_by(user_email=email).first()
+    if not bingo:
+        bingo = Bingo(user_email=email, data='[]')
+        db.session.add(bingo)
+    current_bingo = json.loads(bingo.data)
+    if "street" not in current_bingo:
+        current_bingo.append("street")
+        bingo.data = json.dumps(current_bingo)
+        db.session.commit()
+
+    return render_template('street_stamp.html', email=email, points=point.total_points)
+
+@app.route('/shop_stamp')
+def shop_stamp():
+    if not session.get('logged_in'):
+        session['after_login_redirect'] = 'shop_stamp'
+        return redirect(url_for('login'))
+
+    email = session.get('email')
+
+    # ポイント加算
+    point = Point.query.filter_by(user_email=email).first()
+    if not point:
+        point = Point(user_email=email, total_points=0)
+        db.session.add(point)
+    point.total_points += 20  # ショップQRは20ポイント
+    db.session.commit()
+
+    # ビンゴマス更新
+    bingo = Bingo.query.filter_by(user_email=email).first()
+    if not bingo:
+        bingo = Bingo(user_email=email, data='[]')
+        db.session.add(bingo)
+    current_bingo = json.loads(bingo.data)
+    if "shop" not in current_bingo:
+        current_bingo.append("shop")
+        bingo.data = json.dumps(current_bingo)
+        db.session.commit()
+
+    return render_template('shop_stamp.html', email=email, points=point.total_points)
+
+@app.route('/bingo')
+def bingo():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    email = session.get('email')
+    bingo = Bingo.query.filter_by(user_email=email).first()
+    if bingo:
+        unlocked = json.loads(bingo.data)
+    else:
+        unlocked = []
+
+    # ビンゴ条件例（簡易）
+    bingo_complete = all(marker in unlocked for marker in ["shop", "street"])
+
+    return render_template('bingo.html', unlocked=unlocked, bingo_complete=bingo_complete)
+
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -194,10 +276,16 @@ def logout():
 
 @app.route('/admin', methods=['GET'])
 def admin_page():
-    if session.get('role') not in ['admin', 'super_admin']: 
+    # 管理者以上限定
+    if session.get('role') not in ['admin', 'super_admin']:
         return "権限がありません", 403
+
     users = User.query.all()
-    return render_template('admin.html', email=session.get('email', ''), users=users)
+    for user in users:
+        point_record = Point.query.filter_by(user_email=user.email).first()
+        user.point = point_record.total_points if point_record else 0
+
+    return render_template('admin.html', email=session.get('email'), users=users)
 
 @app.route('/admin/update_role', methods=['POST'])
 def update_role():
@@ -206,19 +294,49 @@ def update_role():
 
     user_id = request.form.get('user_id')
     new_role = request.form.get('role')
+
+    if new_role not in ['user', 'admin', 'super_admin']:
+        return 'error', 400
+
     user = User.query.get(user_id)
-
-    if not user or new_role not in ['user', 'admin', 'super_admin']:
+    if not user:
         return 'error', 400
 
-    # 自分自身のロールは変更できないようにする
     if user.email == session.get('email'):
-        return 'error', 400
+        return 'error', 400  # 自分の権限変更禁止
 
     user.role = new_role
     db.session.commit()
     return 'success'
 
+@app.route('/admin/update_points', methods=['POST'])
+def update_points():
+    if session.get('role') != 'super_admin':
+        return "権限がありません", 403
+
+    user_id = request.form.get('user_id')
+    points = request.form.get('points')
+
+    try:
+        points = int(points)
+        if points < 0:
+            return 'error', 400
+    except (ValueError, TypeError):
+        return 'error', 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return 'error', 400
+
+    point_record = Point.query.filter_by(user_email=user.email).first()
+    if not point_record:
+        point_record = Point(user_email=user.email, total_points=points)
+        db.session.add(point_record)
+    else:
+        point_record.total_points = points
+
+    db.session.commit()
+    return 'success'
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -11,11 +11,65 @@
     <style></style>
   </head>
   <body>
-    <h1>ビンゴ画面</h1>
-    <nav>
+    <body>
+      <h1>ビンゴカード</h1>
+      <p>{{ email }}さんのビンゴ状態</p>
+
+      <div class="bingo-board">
+        {% for row in bingo_board %} {% for cell in row %}
+        <div
+          class="bingo-cell {% if cell.active %}active{% endif %} {% if cell.center %}center{% endif %}"
+        >
+          {{ cell.label }}
+        </div>
+        {% endfor %} {% endfor %}
+      </div>
+      <!DOCTYPE html>
+      <html lang="ja">
+        <head>
+          <meta charset="UTF-8" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}"
+          />
+          <title>ビンゴカード</title>
+        </head>
+        <body>
+          <main>
+            <div class="bingo-board">
+              {% for row in bingo_board %} {% for cell in row %}
+              <div
+                class="bingo-cell {% if cell.active %} active{% endif %} {% if cell.center %} center{% endif %}"
+              >
+                {{ cell.label }}
+              </div>
+              {% endfor %} {% endfor %}
+            </div>
+
+            {% if is_bingo %}
+            <h2 style="color: red; text-align: center">🎉 ビンゴ達成！🎉</h2>
+            {% endif %}
+          </main>
+        </body>
+      </html>
+
+      {% if is_bingo %}
+      <h2 style="color: red; text-align: center">🎉 ビンゴ達成！🎉</h2>
+      {% endif %}
+      <nav>
+        <div style="text-align: center; margin-top: 30px">
+          <a href="{{ url_for('home') }}">ホームに戻る</a>
+        </div>
+      </nav>
+    </body>
+    <!-- <nav>
       <a href="/point">ポイント使用画面へ</a>
       <a href="/home">Homeへ戻る</a>
       <a href="/logout">ログアウト</a>
-    </nav>
+    </nav> -->
   </body>
 </html>
